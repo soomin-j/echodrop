@@ -19,6 +19,7 @@ export default function ArchivePage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editContent, setEditContent] = useState("");
   const [editCaption, setEditCaption] = useState("");
+  const [submitError, setSubmitError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const audioInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -30,7 +31,15 @@ export default function ArchivePage() {
     const file = e.target.files?.[0];
     if (!file) return;
     const reader = new FileReader();
-    reader.onload = () => setPhotoDataUrl(reader.result as string);
+    reader.onload = async () => {
+      const raw = reader.result as string;
+      try {
+        const compressed = await compressImageDataUrl(raw);
+        setPhotoDataUrl(compressed);
+      } catch {
+        setPhotoDataUrl(raw);
+      }
+    };
     reader.readAsDataURL(file);
     setType("photo");
   };
@@ -44,6 +53,7 @@ export default function ArchivePage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    setSubmitError(null);
     if (!user) return;
 
     const payload: Echo = {
@@ -55,13 +65,25 @@ export default function ArchivePage() {
       createdAt: new Date().toISOString(),
     };
 
-    addEcho(payload);
-    setEchoes(getEchoes(user.id));
-    setShowForm(false);
-    setContent("");
-    setCaption("");
-    setPhotoDataUrl(null);
-    setType("text");
+    try {
+      addEcho(payload);
+      setEchoes(getEchoes(user.id));
+      setShowForm(false);
+      setContent("");
+      setCaption("");
+      setPhotoDataUrl(null);
+      setType("text");
+    } catch (err) {
+      const isQuota =
+        err instanceof DOMException
+          ? err.name === "QuotaExceededError"
+          : (err as { name?: string })?.name === "QuotaExceededError";
+      setSubmitError(
+        isQuota
+          ? "Storage full. Try a smaller image or remove some echoes."
+          : "Failed to save. Please try again."
+      );
+    }
   };
 
   const handleDelete = (echoId: string) => {
@@ -100,7 +122,10 @@ export default function ArchivePage() {
       <div className="flex items-center justify-between">
         <h1 className="font-display text-2xl font-medium text-[var(--foreground)]">Archive</h1>
         <button
-          onClick={() => setShowForm(!showForm)}
+          onClick={() => {
+            setShowForm(!showForm);
+            setSubmitError(null);
+          }}
           className={`btn-pressable rounded-[16px] px-4 py-2.5 text-sm font-medium transition-all duration-300 ease-out ${
             showForm
               ? "border border-black/[0.06] bg-white/95 text-[var(--foreground)] hover:bg-white hover:shadow-[var(--shadow-elevated)]"
@@ -188,8 +213,12 @@ export default function ArchivePage() {
               value={caption}
               onChange={(e) => setCaption(e.target.value)}
               placeholder="Optional caption"
-                className="w-full rounded-[16px] border border-black/[0.06] bg-white/95 px-3 py-2 text-sm placeholder:text-[var(--foreground-muted)] focus:outline-none focus:ring-2 focus:ring-black/[0.06]"
+              className="w-full rounded-[16px] border border-black/[0.06] bg-white/95 px-3 py-2 text-sm placeholder:text-[var(--foreground-muted)] focus:outline-none focus:ring-2 focus:ring-black/[0.06]"
             />
+
+            {submitError && (
+              <p className="text-sm text-red-600">{submitError}</p>
+            )}
 
             <button
               type="submit"
