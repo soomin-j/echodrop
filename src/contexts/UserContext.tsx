@@ -10,6 +10,7 @@ interface UserContextValue {
   setUser: (user: User | null) => void;
   signIn: (email: string, country: string, city: string, area: string) => User;
   signOut: () => void;
+  updateLocation: (country: string, city: string, area: string) => void;
 }
 
 const UserContext = createContext<UserContextValue | null>(null);
@@ -46,8 +47,15 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     setUserState(null);
   }, []);
 
+  const updateLocation = useCallback((country: string, city: string, area: string) => {
+    if (!user) return;
+    const updated: User = { ...user, country, city, area };
+    persistUser(updated);
+    setUserState(updated);
+  }, [user]);
+
   return (
-    <UserContext.Provider value={{ user, setUser, signIn, signOut }}>
+    <UserContext.Provider value={{ user, setUser, signIn, signOut, updateLocation }}>
       {children}
     </UserContext.Provider>
   );

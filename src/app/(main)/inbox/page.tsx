@@ -34,7 +34,7 @@ export default function InboxPage() {
   return (
     <div className="flex h-full gap-10">
       <div className="flex w-80 flex-shrink-0 flex-col gap-6">
-        <h1 className="font-display text-2xl font-medium text-[var(--foreground)]">Inbox</h1>
+        <h1 className="font-display text-2xl font-medium text-[var(--foreground)]">Arrivals</h1>
         <div className="flex flex-wrap gap-3">
           <button
             onClick={() => setFilter("all")}

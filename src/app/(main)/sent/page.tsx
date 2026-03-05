@@ -22,7 +22,7 @@ export default function SentPage() {
     <div className="flex h-full gap-10">
       <div className="flex w-80 flex-shrink-0 flex-col gap-6">
         <h1 className="font-display text-2xl font-medium text-[var(--foreground)]">
-          My postcards
+          Released postcards
         </h1>
         <div className="flex flex-col gap-4 overflow-auto">
           {postcards.map((p) => (
