@@ -6,7 +6,7 @@ import { useUser } from "@/contexts/UserContext";
 import { getEchoes, addEcho, deleteEcho, updateEcho } from "@/lib/store";
 import type { Echo, EchoType } from "@/types";
 import { GlassCard } from "@/components/GlassCard";
-import { generateId } from "@/lib/utils";
+import { generateId, compressImageDataUrl } from "@/lib/utils";
 
 export default function ArchivePage() {
   const { user } = useUser();
